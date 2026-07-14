@@ -142,6 +142,9 @@ docker compose --profile monitoring up --build
 | POST | `/api/users/login` | none |
 | GET  | `/api/products/products` | none |
 | POST | `/api/products/products` | none |
+| GET  | `/api/products/products?q=&category_id=&min_price=&max_price=` | none — search/filter |
+| PATCH | `/api/products/products/{id}` | none — update fields |
+| DELETE | `/api/products/products/{id}` | none — delete |
 | GET  | `/api/cart/cart` | JWT |
 | POST | `/api/cart/cart/items` | JWT |
 | POST | `/api/orders/checkout` | JWT |

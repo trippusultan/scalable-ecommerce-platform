@@ -36,6 +36,14 @@ class ProductOut(BaseModel):
                    price=p.price, category_id=p.category_id, stock=p.stock)
 
 
+class ProductUpdate(BaseModel):
+    """Partial update — all fields optional."""
+    name: str | None = Field(default=None, min_length=1, max_length=160)
+    description: str | None = None
+    price: float | None = Field(default=None, gt=0)
+    category_id: int | None = None
+
+
 class InventoryOp(BaseModel):
     """Reserve/release stock for order placement. amount>0 reserve, <0 release."""
 

@@ -19,6 +19,7 @@ from .schemas import (
     InventoryOp,
     ProductCreate,
     ProductOut,
+    ProductUpdate,
     StockResult,
 )
 
@@ -72,18 +73,62 @@ def create_product(body: ProductCreate, settings: Settings = Depends(get_setting
 
 
 @app.get("/products", response_model=list[ProductOut])
-def list_products(category_id: int | None = None, settings: Settings = Depends(get_settings)):
+def list_products(
+    q: str | None = None,
+    category_id: int | None = None,
+    min_price: float | None = None,
+    max_price: float | None = None,
+    settings: Settings = Depends(get_settings),
+):
+    """List products with optional search/filter.
+
+    - q: case-insensitive substring match on name or description
+    - category_id: exact category filter
+    - min_price / max_price: price range (inclusive)
+    """
     with session_scope(settings) as s:
         stmt = select(Product)
         if category_id is not None:
             stmt = stmt.where(Product.category_id == category_id)
-        return [ProductOut.from_orm(p) for p in s.execute(stmt).scalars()]
+        if min_price is not None:
+            stmt = stmt.where(Product.price >= min_price)
+        if max_price is not None:
+            stmt = stmt.where(Product.price <= max_price)
+        rows = s.execute(stmt).scalars().all()
+        if q:
+            ql = q.lower()
+            rows = [p for p in rows if ql in (p.name or "").lower() or ql in (p.description or "").lower()]
+        return [ProductOut.from_orm(p) for p in rows]
 
 
 @app.get("/products/{pid}", response_model=ProductOut)
 def get_product(pid: int, settings: Settings = Depends(get_settings)):
     with session_scope(settings) as s:
         return ProductOut.from_orm(_get_product(s, pid))
+
+
+@app.patch("/products/{pid}", response_model=ProductOut)
+def update_product(pid: int, body: ProductUpdate, settings: Settings = Depends(get_settings)):
+    """Update editable product fields (name, description, price, category)."""
+    with session_scope(settings) as s:
+        p = _get_product(s, pid)
+        if body.name is not None:
+            p.name = body.name
+        if body.description is not None:
+            p.description = body.description
+        if body.price is not None:
+            p.price = body.price
+        if body.category_id is not None:
+            p.category_id = body.category_id
+        s.flush()
+        return ProductOut.from_orm(p)
+
+
+@app.delete("/products/{pid}", status_code=204)
+def delete_product(pid: int, settings: Settings = Depends(get_settings)):
+    with session_scope(settings) as s:
+        p = _get_product(s, pid)
+        s.delete(p)
 
 
 @app.patch("/products/{pid}/stock", response_model=StockResult)
