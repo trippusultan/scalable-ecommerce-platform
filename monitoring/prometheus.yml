@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: ecommerce-services
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - user-service:8000
+          - product-service:8000
+          - cart-service:8000
+          - payment-service:8000
+          - order-service:8000
+          - notification-service:8000
+          - gateway:8000
+          - discovery-service:8000

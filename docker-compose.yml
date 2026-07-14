@@ -1,0 +1,296 @@
+# Scalable E-Commerce Platform — Docker Compose
+#
+# Starts 6 microservices + API Gateway, each with its own Postgres DB,
+# plus RabbitMQ for the event bus.
+#
+#   docker compose up --build
+#   Gateway:  http://localhost:8000   (try /health and /docs)
+#
+# Optional centralized logging (ELK) — enable with the "logging" profile:
+#   docker compose --profile logging up --build
+#
+# NOTE: change JWT_SECRET and all *_DB_PASSWORD before any real deployment.
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # ---------------- Databases (one per service) ----------------
+  user-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ecom
+      POSTGRES_PASSWORD: ecom_pass
+      POSTGRES_DB: user_db
+    volumes: ["user-db-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecom"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  product-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ecom
+      POSTGRES_PASSWORD: ecom_pass
+      POSTGRES_DB: product_db
+    volumes: ["product-db-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecom"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  cart-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ecom
+      POSTGRES_PASSWORD: ecom_pass
+      POSTGRES_DB: cart_db
+    volumes: ["cart-db-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecom"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  payment-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ecom
+      POSTGRES_PASSWORD: ecom_pass
+      POSTGRES_DB: payment_db
+    volumes: ["payment-db-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecom"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  order-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ecom
+      POSTGRES_PASSWORD: ecom_pass
+      POSTGRES_DB: order_db
+    volumes: ["order-db-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecom"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  notification-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ecom
+      POSTGRES_PASSWORD: ecom_pass
+      POSTGRES_DB: notification_db
+    volumes: ["notification-db-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecom"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ---------------- Services ----------------
+  user-service:
+    build: { context: ., dockerfile: Dockerfile, args: { SERVICE: user_service } }
+    environment:
+      SERVICE_NAME: user-service
+      DISCOVERY_URL: http://discovery-service:8000
+      DATABASE_URL: postgresql://ecom:ecom_pass@user-db:5432/user_db
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      PORT: "8000"
+    ports: ["8001:8000"]
+    depends_on: [user-db, rabbitmq]
+
+  product-service:
+    build: { context: ., dockerfile: Dockerfile, args: { SERVICE: product_service } }
+    environment:
+      SERVICE_NAME: product-service
+      DISCOVERY_URL: http://discovery-service:8000
+      DATABASE_URL: postgresql://ecom:ecom_pass@product-db:5432/product_db
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      PORT: "8000"
+    ports: ["8002:8000"]
+    depends_on: [product-db, rabbitmq]
+
+  cart-service:
+    build: { context: ., dockerfile: Dockerfile, args: { SERVICE: cart_service } }
+    environment:
+      SERVICE_NAME: cart-service
+      DISCOVERY_URL: http://discovery-service:8000
+      DATABASE_URL: postgresql://ecom:ecom_pass@cart-db:5432/cart_db
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      USER_SERVICE_URL: http://user-service:8000
+      PRODUCT_SERVICE_URL: http://product-service:8000
+      PORT: "8000"
+    ports: ["8003:8000"]
+    depends_on: [cart-db, rabbitmq]
+
+  payment-service:
+    build: { context: ., dockerfile: Dockerfile, args: { SERVICE: payment_service } }
+    environment:
+      SERVICE_NAME: payment-service
+      DISCOVERY_URL: http://discovery-service:8000
+      DATABASE_URL: postgresql://ecom:ecom_pass@payment-db:5432/payment_db
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      NOTIFICATION_SERVICE_URL: http://notification-service:8000
+      EVENT_BUS: rabbitmq
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      PORT: "8000"
+    ports: ["8004:8000"]
+    depends_on: [payment-db, rabbitmq]
+
+  order-service:
+    build: { context: ., dockerfile: Dockerfile, args: { SERVICE: order_service } }
+    environment:
+      SERVICE_NAME: order-service
+      DISCOVERY_URL: http://discovery-service:8000
+      DATABASE_URL: postgresql://ecom:ecom_pass@order-db:5432/order_db
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      USER_SERVICE_URL: http://user-service:8000
+      PRODUCT_SERVICE_URL: http://product-service:8000
+      CART_SERVICE_URL: http://cart-service:8000
+      PAYMENT_SERVICE_URL: http://payment-service:8000
+      NOTIFICATION_SERVICE_URL: http://notification-service:8000
+      EVENT_BUS: rabbitmq
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      PORT: "8000"
+    ports: ["8005:8000"]
+    depends_on: [order-db, rabbitmq]
+
+  notification-service:
+    build: { context: ., dockerfile: Dockerfile, args: { SERVICE: notification_service } }
+    environment:
+      SERVICE_NAME: notification-service
+      DISCOVERY_URL: http://discovery-service:8000
+      DATABASE_URL: postgresql://ecom:ecom_pass@notification-db:5432/notification_db
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      EVENT_BUS: rabbitmq
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+      PORT: "8000"
+    ports: ["8006:8000"]
+    depends_on: [notification-db, rabbitmq]
+
+  gateway:
+    build: { context: ., dockerfile: Dockerfile, args: { SERVICE: gateway } }
+    environment:
+      SERVICE_NAME: gateway
+      USER_SERVICE_URL: http://user-service:8000
+      PRODUCT_SERVICE_URL: http://product-service:8000
+      CART_SERVICE_URL: http://cart-service:8000
+      PAYMENT_SERVICE_URL: http://payment-service:8000
+      ORDER_SERVICE_URL: http://order-service:8000
+      NOTIFICATION_SERVICE_URL: http://notification-service:8000
+      DISCOVERY_URL: http://discovery-service:8000
+      PORT: "8000"
+    ports: ["8000:8000"]
+    depends_on:
+      - user-service
+      - product-service
+      - cart-service
+      - payment-service
+      - order-service
+      - notification-service
+
+  discovery-service:
+    build: { context: ., dockerfile: Dockerfile, args: { SERVICE: discovery_service } }
+    environment:
+      SERVICE_NAME: discovery-service
+      DATABASE_URL: postgresql://ecom:ecom_pass@discovery-db:5432/discovery_db
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      PORT: "8000"
+    ports: ["8009:8000"]
+    depends_on: [discovery-db, rabbitmq]
+
+  discovery-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ecom
+      POSTGRES_PASSWORD: ecom_pass
+      POSTGRES_DB: discovery_db
+    volumes: ["discovery-db-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ecom"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ---------------- Optional: centralized logging (ELK) ----------------
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    volumes: ["es-data:/usr/share/elasticsearch/data"]
+    profiles: ["logging"]
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.13.4
+    volumes: ["./elk/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro"]
+    depends_on: [elasticsearch]
+    profiles: ["logging"]
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports: ["5601:5601"]
+    depends_on: [elasticsearch]
+    profiles: ["logging"]
+
+  # ---------------- One-shot seed of real sample data ----------------
+  seed:
+    build: { context: ., dockerfile: Dockerfile, args: { SERVICE: gateway } }
+    environment:
+      SEED_BASE: http://gateway:8000
+    command: ["sh", "-c", "pip install requests >/dev/null && python scripts/seed.py"]
+    volumes: ["./scripts:/app/scripts:ro"]
+    depends_on:
+      - gateway
+      - user-service
+      - product-service
+    restart: "no"
+
+  # ---------------- Monitoring: Prometheus + Grafana ----------------
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports: ["9090:9090"]
+    depends_on: [gateway, user-service, product-service, cart-service,
+                 payment-service, order-service, notification-service, discovery-service]
+    profiles: ["monitoring"]
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports: ["3000:3000"]
+    volumes: ["grafana-data:/var/lib/grafana"]
+    depends_on: [prometheus]
+    profiles: ["monitoring"]
+
+volumes:
+  user-db-data:
+  product-db-data:
+  cart-db-data:
+  payment-db-data:
+  order-db-data:
+  notification-db-data:
+  discovery-db-data:
+  es-data:
+  grafana-data:

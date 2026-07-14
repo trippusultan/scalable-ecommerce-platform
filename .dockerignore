@@ -1,0 +1,28 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Local runtime / data
+.runtime/
+tests/data/
+tests/data_live/
+tests/logs/
+*.db
+*.db-journal
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Git / editor
+.git/
+.vscode/
+.idea/
+
+# Misc
+Dockerfile
+docker-compose.yml

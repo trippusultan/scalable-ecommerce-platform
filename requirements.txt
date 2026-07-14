@@ -1,0 +1,14 @@
+fastapi>=0.110
+uvicorn[standard]>=0.27
+sqlalchemy>=2.0
+bcrypt>=4.1
+pyjwt>=2.8
+httpx>=0.27
+pydantic[email]>=2.6
+pydantic-settings>=2.1
+psutil>=5.9   # dev convenience for scripts/run_local.py (stop, port guards)
+# optional integrations (lazy-imported in code; install to activate)
+# stripe
+# sendgrid
+# twilio
+# pika        # RabbitMQ event bus
