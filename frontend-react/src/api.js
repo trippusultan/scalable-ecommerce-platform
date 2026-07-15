@@ -5,6 +5,9 @@
 // Falls back to same-origin /api when VITE_API_BASE is unset (dev / Docker).
 
 const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
+// Full origin for the backend (Render gateway). Empty in dev/Docker where the
+// SPA is served by the gateway itself (same-origin /api).
+export const API_ORIGIN = API_BASE;
 const PREFIX = API_BASE ? API_BASE + "/api" : "/api";
 
 async function request(path, opts = {}) {

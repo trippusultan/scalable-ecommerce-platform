@@ -6,6 +6,7 @@ import { useToast } from "../context/ToastContext.jsx";
 import AuthModal from "./AuthModal.jsx";
 import SpotlightHeading from "./SpotlightHeading.jsx";
 import { BRAND } from "../brand.js";
+import { API_ORIGIN } from "../api.js";
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -18,7 +19,7 @@ export default function Layout({ children }) {
   // live service health in footer
   const tick = async () => {
     try {
-      const r = await fetch("/api/health?deep=1");
+      const r = await fetch((API_ORIGIN || "") + "/health?deep=1");
       const data = await r.json();
       const arr = Object.values(data.services || {});
       const up = arr.filter((s) => s && s !== "down" && s !== "error").length;
