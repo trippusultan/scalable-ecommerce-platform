@@ -41,24 +41,30 @@ export default function Checkout() {
   }, 0);
 
   const placeOrder = async () => {
+    if (busy) return;
     setBusy(true);
     setMsg("");
     try {
       // Sync client cart to the server cart-service, then checkout.
+      // A missing/empty server cart must not abort the order — the backend
+      // checkout reads from the cart-service, so we best-effort sync and
+      // continue. Any hard error surfaces with a real message below.
       try {
         await api.del("/cart/cart");
-      } catch {
-        /* empty cart is fine */
-      }
+      } catch { /* empty/already-cleared cart is fine */ }
       for (const id of ids) {
-        await api.post("/cart/cart/items", { product_id: id, quantity: cart[id] });
+        try {
+          await api.post("/cart/cart/items", { product_id: id, quantity: cart[id] });
+        } catch (e) {
+          throw new Error("Could not add " + (products[id]?.name || "item #" + id) + " to cart: " + (e?.message || e));
+        }
       }
       const r = await api.post("/orders/checkout", {});
       clear();
-      toast("Order placed — #" + r.order_id);
+      toast("Order placed — #" + (r?.order_id ?? ""));
       navigate("/orders");
     } catch (e) {
-      setMsg(e.message || "Checkout failed");
+      setMsg(e?.message || "Checkout failed");
       setBusy(false);
     }
   };

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useToast } from "../context/ToastContext.jsx";
+import { api } from "../api.js";
 
 function money(n) {
   return "$" + Number(n).toFixed(2);
@@ -35,18 +36,19 @@ export default function Orders() {
     let active = true;
     setLoading(true);
     const token = localStorage.getItem("token");
-    fetch("/api/orders/orders", { headers: { Authorization: "Bearer " + token } })
-      .then((r) => {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.json();
-      })
+    // NOTE: route through the shared api client. The gateway path is
+    // /api/orders/orders (order-service root /orders 404s); the api client
+    // prepends VITE_API_BASE so this hits the backend, not the Firebase
+    // SPA fallback (which would return index.html -> "<!DOCTYPE" JSON error).
+    api
+      .get("/orders/orders")
       .then((o) => {
         if (!active) return;
         // newest first
         setOrders([...o].sort((a, b) => b.id - a.id));
         if (o.length) setOpenId(o[0].id);
       })
-      .catch((e) => active && toast("Could not load orders (" + e.message + ")"))
+      .catch((e) => active && toast("Could not load orders (" + (e?.message || e) + ")"))
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
