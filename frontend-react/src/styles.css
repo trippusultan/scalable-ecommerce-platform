@@ -258,6 +258,42 @@ a:hover { color: var(--accent-deep); }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .order-head { grid-template-columns: 1fr auto; }
   .order-date, .order-chevron { display: none; }
+  .view { padding: 28px 18px 48px; }
+  .hero h1, .hero-title { font-size: clamp(30px, 9vw, 44px); }
+}
+
+@media (max-width: 560px) {
+  .topbar { flex-wrap: wrap; gap: 12px 14px; padding: 12px 16px; }
+  .brand { font-size: 19px; }
+  .search { order: 3; width: 100%; margin-left: 0; }
+  .search input { width: 100%; max-width: 100%; }
+  .nav { gap: 12px; margin-left: auto; }
+  .footer-grid { grid-template-columns: 1fr; gap: 20px; }
+  .footer-blurb { max-width: 100%; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .card { padding: 12px; }
+  .modal { width: 100%; padding: 22px 18px; }
+  .order-head { grid-template-columns: 1fr auto; gap: 8px 12px; }
+  .order-total { grid-column: 1 / -1; }
+  .hero p { font-size: 15px; }
+  .summary { gap: 12px; }
+}
+
+@media (max-width: 380px) {
+  .grid { grid-template-columns: 1fr; }
+  .nav a, .nav .cart-link { font-size: 13px; }
+}
+
+/* ---------- mobile / touch polish ---------- */
+html { -webkit-text-size-adjust: 100%; }
+* { -webkit-tap-highlight-color: transparent; }
+body { scroll-behavior: smooth; }
+/* comfortable touch targets on phones */
+@media (hover: none) and (pointer: coarse) {
+  .step-btn, .qty button, .chip, .add-btn, .ghost-btn, .accent-btn, .nav a, .cart-link, .tab {
+    min-height: 40px;
+  }
+  .step-btn { width: 40px; height: 40px; }
 }
 
 /* ---------- spinner ---------- */
