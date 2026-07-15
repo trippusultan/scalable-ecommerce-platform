@@ -1,28 +1,19 @@
-# Python
-.venv/
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.mypy_cache/
-
-# Local runtime / data
-.runtime/
-tests/data/
-tests/data_live/
-tests/logs/
-*.db
-*.db-journal
-
-# Env / secrets
-.env
-.env.*
-!.env.example
-
-# Git / editor
-.git/
-.vscode/
-.idea/
-
-# Misc
-Dockerfile
-docker-compose.yml
+# Ignore everything not needed in the Docker build context.
+.git
+.gitignore
+.venv
+**/__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.runtime
+tests
+frontend
+frontend-react
+.firebase
+firebase.json
+.firebaserc
+firebase-debug.log
+*.md
+*.log
