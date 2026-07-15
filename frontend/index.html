@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atelier — Clean Matte Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/ui/styles.css?v=7" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/" data-link>Atelier<span class="brand-dot">.</span></a>
+    <form class="search" id="search-form" autocomplete="off">
+      <input id="search-input" type="search" placeholder="Search the catalogue…" aria-label="Search" />
+    </form>
+    <nav class="nav">
+      <a href="#/" data-link>Shop</a>
+      <a href="#/orders" data-link class="nav-orders" hidden>Orders</a>
+      <a href="#/cart" data-link class="cart-link">Cart <span class="cart-count" id="cart-count">0</span></a>
+      <button class="ghost-btn" id="auth-btn">Sign in</button>
+    </nav>
+  </header>
+
+  <main id="view" class="view"></main>
+
+  <footer class="footer">
+    <div>Atelier — a clean matte storefront demo over a microservices backend.</div>
+    <div class="footer-meta" id="footer-health">services: —</div>
+  </footer>
+
+  <!-- Auth modal -->
+  <div class="modal-backdrop" id="auth-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true">
+      <button class="modal-close" id="auth-close" aria-label="Close">×</button>
+      <div class="modal-tabs">
+        <button class="tab active" data-tab="login">Sign in</button>
+        <button class="tab" data-tab="register">Create account</button>
+      </div>
+      <form id="auth-form" class="auth-form">
+        <input id="auth-username" placeholder="Username" autocomplete="username" />
+        <input id="auth-email" placeholder="Email" type="email" autocomplete="email" hidden />
+        <input id="auth-fullname" placeholder="Full name" autocomplete="name" hidden />
+        <input id="auth-password" placeholder="Password" type="password" autocomplete="current-password" />
+        <button class="accent-btn" type="submit" id="auth-submit">Sign in</button>
+        <div class="form-msg" id="auth-msg"></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="/ui/app.js?v=7"></script>
+</body>
+</html>

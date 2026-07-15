@@ -25,6 +25,7 @@ from typing import Any
 
 import httpx
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from common.config import Settings, get_settings
@@ -39,6 +40,19 @@ log = configure_logging(settings.service_name, settings.log_level)
 
 app = FastAPI(title="API Gateway", version="1.0.0")
 install_exception_handlers(app)
+
+# CORS: allow the frontend origin(s). Set CORS_ORIGINS (comma-separated) in prod
+# e.g. "https://aslu.web.app". Defaults to allowing the Firebase Hosting domain
+# plus localhost dev origins.
+_cors_raw = os.environ.get("CORS_ORIGINS", "https://aslu.web.app,http://127.0.0.1:5173,http://127.0.0.1:8000")
+_cors_origins = [o.strip() for o in _cors_raw.split(",") if o.strip()]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # logical prefix -> registry service name
 SERVICE_NAMES = {
@@ -177,3 +191,43 @@ async def proxy(service: str, path: str, request: Request):
         status_code=upstream.status_code,
         headers={"Content-Type": upstream.headers.get("content-type", "application/json")},
     )
+
+
+# --- Frontend (clean matte React storefront) ------------------------------
+# Served from /ui/* so the whole app runs behind the single gateway port.
+# The gateway serves the built SPA (frontend-react/dist). client-side routing
+# (React Router) needs a fallback to index.html for non-asset paths.
+import os as _os
+
+_FRONTEND_DIR = _os.path.join(
+    _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))), "frontend-react", "dist"
+)
+if _os.path.isdir(_FRONTEND_DIR):
+    from fastapi.staticfiles import StaticFiles
+    from fastapi.responses import FileResponse, RedirectResponse
+
+    # Static assets (hashed) served directly.
+    app.mount("/ui/assets", StaticFiles(directory=_os.path.join(_FRONTEND_DIR, "assets")), name="ui-assets")
+
+    @app.get("/ui/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # Serve real files (css, etc.) if present, else fall back to index.html.
+        candidate = _os.path.join(_FRONTEND_DIR, full_path)
+        if full_path and _os.path.isfile(candidate):
+            return FileResponse(candidate)
+        return FileResponse(_os.path.join(_FRONTEND_DIR, "index.html"))
+
+    # Convenience: visiting the bare gateway root redirects to the storefront.
+    @app.get("/")
+    async def index_redirect():
+        return RedirectResponse(url="/ui/")
+else:  # pragma: no cover
+    @app.get("/")
+    async def index():
+        return {
+            "service": "API Gateway",
+            "status": "ok",
+            "discovery": "registry" if _registry.using_registry else "static",
+            "note": "frontend-react/dist not found; build it with: cd frontend-react && npm run build",
+            "routes": {p: s for p, s in SERVICE_NAMES.items()},
+        }

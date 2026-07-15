@@ -1,7 +1,8 @@
 """Product Catalog Service — models."""
 from __future__ import annotations
 
-from sqlalchemy import String, Integer, Float, Column, Text
+from sqlalchemy import String, Integer, Float, Column, Text, ForeignKey
+from sqlalchemy.orm import relationship
 
 from common.db import Base
 
@@ -18,5 +19,7 @@ class Product(Base):
     name = Column(String(160), nullable=False, index=True)
     description = Column(Text, default="")
     price = Column(Float, nullable=False)
-    category_id = Column(Integer, index=True, nullable=True)
+    category_id = Column(Integer, ForeignKey("categories.id"), index=True, nullable=True)
     stock = Column(Integer, nullable=False, default=0)
+
+    category = relationship("Category")

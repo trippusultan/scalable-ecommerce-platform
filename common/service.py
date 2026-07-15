@@ -42,9 +42,11 @@ def bootstrap(app: FastAPI, settings: Settings, static_urls: dict[str, str]) -> 
     # discovery
     registry_url = os.environ.get("DISCOVERY_URL", "").rstrip("/")
     client = DiscoveryClient(registry_url, static_urls) if registry_url else DiscoveryClient("", static_urls)
-    # Register with the URL we actually listen on (settings.port), not the static
-    # default — in tests/non-default deployments the real port differs.
-    self_url = f"http://127.0.0.1:{settings.port}"
+    # Register with the URL peers should use to reach us. In container/orchestrated
+    # deploys (Render, Railway, Cloud Run) set PUBLIC_URL to the service's external
+    # URL (e.g. https://ecom-user.onrender.com); otherwise fall back to localhost.
+    public_url = os.environ.get("PUBLIC_URL", "").rstrip("/")
+    self_url = public_url or f"http://127.0.0.1:{settings.port}"
     if registry_url:
         # Retry the initial registration: discovery may still be starting up
         # when this service boots, and a single failed register would leave the

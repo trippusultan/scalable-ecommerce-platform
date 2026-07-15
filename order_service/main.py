@@ -82,7 +82,7 @@ async def checkout(user_id: int = Depends(require_user_id),
             if p["stock"] < qty:
                 raise HTTPException(status_code=409,
                                     detail=f"product {pid} only has {p['stock']} in stock")
-            lines.append({"product_id": pid, "quantity": qty, "price": p["price"]})
+            lines.append({"product_id": pid, "quantity": qty, "price": p["price"], "name": p["name"]})
             total += p["price"] * qty
             # 3) reserve stock
             res = await product.patch(f"/products/{pid}/stock",

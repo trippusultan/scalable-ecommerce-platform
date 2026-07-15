@@ -1,0 +1,179 @@
+# Render Infrastructure-as-Code for the scalable e-commerce platform.
+# Deploys all 8 services as Render Web Services. Each builds the shared
+# Dockerfile with the right SERVICE build-arg and listens on $PORT (8000).
+#
+# Render injects RENDER_EXTERNAL_URL per service (its public https URL).
+# We map that to PUBLIC_URL so each service registers its real external URL
+# with the discovery registry, and use it for DISCOVERY_URL / peer URLs.
+#
+# Secrets you MUST set in the Render dashboard (or via `render secrets`):
+#   JWT_SECRET        - a 32+ char random string (shared by all services)
+#   DATABASE_URL      - optional; defaults to per-service SQLite on the volume
+#
+# This file is committed but contains NO secrets.
+
+services:
+  - type: web
+    name: ecom-discovery
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    buildFilter:
+      dockerBuildArgs:
+        SERVICE: discovery_service
+    healthCheckPath: /health
+    envVars:
+      - key: SERVICE_NAME
+        value: discovery-service
+      - key: PUBLIC_URL
+        sync: false
+        value: https://ecom-discovery.onrender.com
+      - key: JWT_SECRET
+        sync: false
+        fromGroup: ecom-secrets
+
+  - type: web
+    name: ecom-user
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    buildFilter:
+      dockerBuildArgs:
+        SERVICE: user_service
+    healthCheckPath: /health
+    envVars:
+      - key: SERVICE_NAME
+        value: user-service
+      - key: PUBLIC_URL
+        sync: false
+        value: https://ecom-user.onrender.com
+      - key: DISCOVERY_URL
+        sync: false
+        value: https://ecom-discovery.onrender.com
+      - key: JWT_SECRET
+        sync: false
+        fromGroup: ecom-secrets
+
+  - type: web
+    name: ecom-product
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    buildFilter:
+      dockerBuildArgs:
+        SERVICE: product_service
+    healthCheckPath: /health
+    envVars:
+      - key: SERVICE_NAME
+        value: product-service
+      - key: PUBLIC_URL
+        sync: false
+        value: https://ecom-product.onrender.com
+      - key: DISCOVERY_URL
+        sync: false
+        value: https://ecom-discovery.onrender.com
+      - key: JWT_SECRET
+        sync: false
+        fromGroup: ecom-secrets
+
+  - type: web
+    name: ecom-cart
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    buildFilter:
+      dockerBuildArgs:
+        SERVICE: cart_service
+    healthCheckPath: /health
+    envVars:
+      - key: SERVICE_NAME
+        value: cart-service
+      - key: PUBLIC_URL
+        sync: false
+        value: https://ecom-cart.onrender.com
+      - key: DISCOVERY_URL
+        sync: false
+        value: https://ecom-discovery.onrender.com
+      - key: JWT_SECRET
+        sync: false
+        fromGroup: ecom-secrets
+
+  - type: web
+    name: ecom-payment
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    buildFilter:
+      dockerBuildArgs:
+        SERVICE: payment_service
+    healthCheckPath: /health
+    envVars:
+      - key: SERVICE_NAME
+        value: payment-service
+      - key: PUBLIC_URL
+        sync: false
+        value: https://ecom-payment.onrender.com
+      - key: DISCOVERY_URL
+        sync: false
+        value: https://ecom-discovery.onrender.com
+      - key: JWT_SECRET
+        sync: false
+        fromGroup: ecom-secrets
+
+  - type: web
+    name: ecom-order
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    buildFilter:
+      dockerBuildArgs:
+        SERVICE: order_service
+    healthCheckPath: /health
+    envVars:
+      - key: SERVICE_NAME
+        value: order-service
+      - key: PUBLIC_URL
+        sync: false
+        value: https://ecom-order.onrender.com
+      - key: DISCOVERY_URL
+        sync: false
+        value: https://ecom-discovery.onrender.com
+      - key: JWT_SECRET
+        sync: false
+        fromGroup: ecom-secrets
+
+  - type: web
+    name: ecom-notification
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    buildFilter:
+      dockerBuildArgs:
+        SERVICE: notification_service
+    healthCheckPath: /health
+    envVars:
+      - key: SERVICE_NAME
+        value: notification-service
+      - key: PUBLIC_URL
+        sync: false
+        value: https://ecom-notification.onrender.com
+      - key: DISCOVERY_URL
+        sync: false
+        value: https://ecom-discovery.onrender.com
+      - key: JWT_SECRET
+        sync: false
+        fromGroup: ecom-secrets
+
+  - type: web
+    name: ecom-gateway
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    buildFilter:
+      dockerBuildArgs:
+        SERVICE: gateway
+    healthCheckPath: /health
+    envVars:
+      - key: SERVICE_NAME
+        value: gateway
+      - key: PUBLIC_URL
+        sync: false
+        value: https://ecom-gateway.onrender.com
+      - key: DISCOVERY_URL
+        sync: false
+        value: https://ecom-discovery.onrender.com
+      - key: JWT_SECRET
+        sync: false
+        fromGroup: ecom-secrets

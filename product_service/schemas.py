@@ -28,12 +28,15 @@ class ProductOut(BaseModel):
     description: str
     price: float
     category_id: int | None
+    category_name: str | None = None
     stock: int
 
     @classmethod
     def from_orm(cls, p: Any) -> "ProductOut":
         return cls(id=p.id, name=p.name, description=p.description or "",
-                   price=p.price, category_id=p.category_id, stock=p.stock)
+                   price=p.price, category_id=p.category_id,
+                   category_name=(p.category.name if getattr(p, "category", None) else None),
+                   stock=p.stock)
 
 
 class ProductUpdate(BaseModel):

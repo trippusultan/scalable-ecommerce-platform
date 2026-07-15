@@ -30,3 +30,12 @@ tests/logs/
 
 # Logs
 *.log
+
+# Node / frontend
+node_modules/
+frontend-react/dist/
+frontend-react/node_modules/
+
+# Firebase
+.firebase/
+firebase-debug.log

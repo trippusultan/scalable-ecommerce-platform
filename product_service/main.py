@@ -5,6 +5,7 @@ import os
 
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from common.config import Settings, get_settings
 from common.db import init_db, session_scope
@@ -87,7 +88,7 @@ def list_products(
     - min_price / max_price: price range (inclusive)
     """
     with session_scope(settings) as s:
-        stmt = select(Product)
+        stmt = select(Product).options(selectinload(Product.category))
         if category_id is not None:
             stmt = stmt.where(Product.category_id == category_id)
         if min_price is not None:
@@ -104,7 +105,11 @@ def list_products(
 @app.get("/products/{pid}", response_model=ProductOut)
 def get_product(pid: int, settings: Settings = Depends(get_settings)):
     with session_scope(settings) as s:
-        return ProductOut.from_orm(_get_product(s, pid))
+        p = s.get(Product, pid)
+        if not p:
+            raise NotFoundError(f"product {pid} not found")
+        s.refresh(p, ["category"])
+        return ProductOut.from_orm(p)
 
 
 @app.patch("/products/{pid}", response_model=ProductOut)
