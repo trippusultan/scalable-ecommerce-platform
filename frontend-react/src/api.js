@@ -4,7 +4,9 @@
 // gateway directly via VITE_API_BASE (e.g. https://ecom-gateway.onrender.com).
 // Falls back to same-origin /api when VITE_API_BASE is unset (dev / Docker).
 
-const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
+const API_BASE = (import.meta.env.VITE_API_BASE || "")
+  .trim()                       // kill any trailing/leading whitespace (e.g. a
+  .replace(/\/+$/, "");         // stray space from env injection -> %20 in URL
 // Full origin for the backend (Render gateway). Empty in dev/Docker where the
 // SPA is served by the gateway itself (same-origin /api).
 export const API_ORIGIN = API_BASE;
