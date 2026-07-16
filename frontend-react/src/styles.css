@@ -144,6 +144,7 @@ a:hover { color: var(--accent-deep); }
   mix-blend-mode: multiply; pointer-events: none;
 }
 .thumb .glyph { position: relative; font-family: var(--serif); font-size: 40px; color: var(--accent); opacity: .85; z-index: 1; }
+.thumb-photo { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: cover; display: block; }
 .card h3 { font-family: var(--serif); font-weight: 500; font-size: 18px; margin: 0; }
 .card .desc { color: var(--ink-faint); font-size: 13.5px; margin: 0; min-height: 34px; }
 .card .row { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }

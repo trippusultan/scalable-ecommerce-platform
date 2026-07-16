@@ -3,11 +3,13 @@ import { useParams, Link } from "react-router-dom";
 import { api } from "../api.js";
 import { useCart } from "../context/CartContext.jsx";
 import { useToast } from "../context/ToastContext.jsx";
+import { productImage, productImageUrl } from "../images.js";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [imgFailed, setImgFailed] = useState(false);
   const { add } = useCart();
   const { toast } = useToast();
 
@@ -27,6 +29,7 @@ export default function ProductDetail() {
   if (loading) return <div className="loading"><span className="spinner" /> Loading…</div>;
   if (!product) return <div className="empty">Product not found.</div>;
 
+  const photo = productImageUrl(product);
   const glyph = (product.name || "•")[0].toUpperCase();
 
   return (
@@ -36,9 +39,18 @@ export default function ProductDetail() {
       </Link>
       <div className="product-detail">
         <div className="thumb">
-          <span className="glyph" style={{ fontSize: "clamp(48px, 12vw, 72px)" }}>
-            {glyph}
-          </span>
+          {photo && !imgFailed ? (
+            <img
+              className="thumb-photo"
+              src={photo}
+              alt={product.name}
+              onError={() => setImgFailed(true)}
+            />
+          ) : (
+            <span className="glyph" style={{ fontSize: "clamp(48px, 12vw, 72px)" }}>
+              {glyph}
+            </span>
+          )}
         </div>
         <div className="center-col">
           <div className="cat-tag">{product.category_name || "Item"}</div>

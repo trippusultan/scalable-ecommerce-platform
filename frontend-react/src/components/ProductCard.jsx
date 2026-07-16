@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext.jsx";
 import { useToast } from "../context/ToastContext.jsx";
-import { productImage } from "../images.js";
+import { productImage, productImageUrl } from "../images.js";
 import SheenButton from "./SheenButton.jsx";
 import ElectricBorder from "./ElectricBorder.jsx";
 
@@ -11,10 +11,22 @@ export default function ProductCard({ product }) {
   const { toast } = useToast();
   const qty = cart[product.id] || 0;
   const [hovered, setHovered] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
+  const photo = productImageUrl(product);
 
   const thumb = (
     <Link className="thumb" to={"/product/" + product.id} aria-label={product.name}>
-      <span className="thumb-art" dangerouslySetInnerHTML={{ __html: productImage(product) }} />
+      {photo && !imgFailed ? (
+        <img
+          className="thumb-photo"
+          src={photo}
+          alt={product.name}
+          loading="lazy"
+          onError={() => setImgFailed(true)}
+        />
+      ) : (
+        <span className="thumb-art" dangerouslySetInnerHTML={{ __html: productImage(product) }} />
+      )}
     </Link>
   );
 

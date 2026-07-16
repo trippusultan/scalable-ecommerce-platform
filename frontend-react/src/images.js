@@ -87,6 +87,37 @@ function pick(name) {
   return GENERIC;
 }
 
+// Real product photos (verified Unsplash CDN URLs). Used as the primary
+// image; ProductImage falls back to the line-art SVG if a photo fails to load.
+const PHOTOS = {
+  mouse: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=800&q=80",
+  keyboard: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80",
+  hub: "https://images.unsplash.com/photo-1595225476474-87563907a212?w=800&q=80",
+  book_cleancode: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&q=80",
+  book_pragmatic: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=800&q=80",
+  mug: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=800&q=80",
+  bottle: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=800&q=80",
+  blocks: "https://images.unsplash.com/photo-1535378917042-10a22c95931a?w=800&q=80",
+};
+
+function pickPhoto(name) {
+  const n = (name || "").toLowerCase();
+  if (n.includes("mouse")) return PHOTOS.mouse;
+  if (n.includes("keyboard")) return PHOTOS.keyboard;
+  if (n.includes("hub")) return PHOTOS.hub;
+  if (n.includes("mug")) return PHOTOS.mug;
+  if (n.includes("bottle")) return PHOTOS.bottle;
+  if (n.includes("block")) return PHOTOS.blocks;
+  if (n.includes("clean code")) return PHOTOS.book_cleancode;
+  if (n.includes("pragmatic")) return PHOTOS.book_pragmatic;
+  if (n.includes("code") || n.includes("book")) return PHOTOS.book_cleancode;
+  return null;
+}
+
 export function productImage(product) {
   return pick(product && product.name);
+}
+
+export function productImageUrl(product) {
+  return pickPhoto(product && product.name);
 }
