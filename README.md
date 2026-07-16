@@ -1,15 +1,23 @@
 # Scalable E-Commerce Platform (Microservices)
 
-A scalable e-commerce platform built with a **microservices architecture** and
-Docker. Each feature is its own independently deployable service that
-communicates over REST and is fronted by an API Gateway.
+A scalable e-commerce platform built with a **microservices architecture**, an
+**API gateway**, **service discovery**, and a **React storefront** — fronted by
+Firebase Hosting and backed by 7 FastAPI services on Render.
 
 Solution to the roadmap.sh project:
 **https://roadmap.sh/projects/scalable-ecommerce-platform**
 
+> **Live demo:** https://aslustore.web.app  ·  backend: `https://aslu-backend.onrender.com`
+
 ## Architecture
 
 ```
+                ┌────────────┐
+   browser ───▶ │ Firebase   │  (static React SPA, aslustore.web.app)
+                │ Hosting    │
+                └─────┬──────┘
+                      │  /api/*  ──▶  CORS + HTTPS to Render
+                      ▼
                 ┌────────────┐
    client ─────▶ │ API Gateway│  (port 8000, routes /api/<svc>/*, forwards JWT)
                 └─────┬──────┘
@@ -36,6 +44,28 @@ env values, so the platform still runs without it.
 **Monitoring**: each service mounts a Prometheus `/metrics` endpoint (request
 count, latency histogram, 5xx count). Prometheus scrapes them; Grafana visualizes.
 
+## Storefront (React + Vite)
+
+`frontend-react/` is a production React SPA (`BrowserRouter`, no SSR). It talks to
+the backend **only through the gateway** (`VITE_API_BASE`); product images are
+real photos served from a CDN with an inline-SVG line-art fallback, so the grid
+never shows a broken image. The navbar collapses into a clean two-row layout on
+mobile (brand + search on row 1, an evenly-aligned tab bar on row 2), and a small
+global **error shield** (`src/ext-shield.js`) swallows uncaught errors injected by
+third-party browser extensions so they never surface in visitors' consoles.
+
+```bash
+cd frontend-react
+export PATH="/c/Program Files/nodejs:$PATH"        # Windows/MSYS
+npm install
+VITE_BASE=/ VITE_API_BASE=https://aslu-backend.onrender.com npm run build
+# outputs ./dist  →  firebase deploy --only hosting
+```
+
+> Build note: the SPA must be built with `VITE_BASE=/` (root asset paths). Building
+> with the default `base: "/ui/"` makes Firebase's SPA fallback serve `index.html`
+> for JS/CSS requests, which breaks the bundle — keep `VITE_BASE=/`.
+
 ## Services
 
 | Service            | Port | Responsibility                                        |
@@ -60,7 +90,7 @@ Requires Python 3.12.
 
 ```bash
 cd ecommerce-platform
-python -m venv .venv && .venv\Scripts\activate        # (bash: source .venv/Scripts/activate)
+python -m venv .venv && .venv\\Scripts\\activate        # (bash: source .venv/Scripts/activate)
 pip install -r requirements.txt
 python scripts/run_local.py start     # boots all 7 services + seeds real sample data
 python scripts/smoke.py               # guided end-to-end demo (checkout as alice)
@@ -133,6 +163,8 @@ docker compose --profile monitoring up --build
 | `DISCOVERY_TTL` / `DISCOVERY_HEARTBEAT` | Registry entry expiry / heartbeat interval (seconds) |
 | `STRIPE_API_KEY` / `SENDGRID_API_KEY` / `TWILIO_*` | Optional — without them the service runs in safe mock mode |
 | `DEFAULT_NOTIFY_EMAIL` / `DEFAULT_NOTIFY_PHONE` | Fallback recipient when an event lacks the user's email |
+| `VITE_API_BASE` | (frontend) Base URL of the gateway, e.g. `https://aslu-backend.onrender.com` |
+| `VITE_BASE` | (frontend) Asset base path — must be `/` for Firebase Hosting |
 
 ## API quick reference (all via the gateway)
 
@@ -166,8 +198,11 @@ user_service/  product_service/  cart_service/  payment_service/
 order_service/ notification_service/  gateway/        one app each
 scripts/               run_local.py (start/stop/status), smoke.py (demo)
 tests/                 live integration tests
+frontend-react/        React + Vite storefront (aslustore.web.app)
 docker-compose.yml     full stack + RabbitMQ (+ optional ELK profile)
 Dockerfile             multi-stage, parameterized by --build-arg SERVICE=…
+render.yaml            Render web-service + worker specs for the 7 services
+firebase.json          Firebase Hosting config for the React SPA
 ```
 
 ## License
