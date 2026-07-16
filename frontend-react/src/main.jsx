@@ -1,4 +1,5 @@
 import React from "react";
+import "./ext-shield.js"; // must be first: shields against third-party extension errors
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
