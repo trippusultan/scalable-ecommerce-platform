@@ -34,25 +34,21 @@ export default function ProductDetail() {
       <Link className="muted" to="/">
         ← Back to catalogue
       </Link>
-      <div style={{ display: "flex", gap: 32, marginTop: 20, flexWrap: "wrap" }}>
-        <div className="thumb" style={{ width: 340, aspectRatio: "1/1", flex: "0 0 auto" }}>
-          <span className="glyph" style={{ fontSize: 72 }}>
+      <div className="product-detail">
+        <div className="thumb">
+          <span className="glyph" style={{ fontSize: "clamp(48px, 12vw, 72px)" }}>
             {glyph}
           </span>
         </div>
         <div className="center-col">
           <div className="cat-tag">{product.category_name || "Item"}</div>
-          <h1 style={{ fontFamily: "var(--serif)", fontWeight: 500, fontSize: 38, margin: "8px 0 10px" }}>
-            {product.name}
-          </h1>
+          <h1>{product.name}</h1>
           <p className="muted" style={{ fontSize: 16 }}>
             {product.description || "No description."}
           </p>
-          <div className="price" style={{ fontSize: 28, margin: "18px 0" }}>
-            ${Number(product.price).toFixed(2)}
-          </div>
+          <div className="price">${Number(product.price).toFixed(2)}</div>
           <div className="meta-pill">{product.stock} in stock</div>
-          <div style={{ marginTop: 22, display: "flex", gap: 12, alignItems: "center" }}>
+          <div className="actions">
             <button
               className="accent-btn"
               onClick={() => {
