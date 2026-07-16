@@ -295,14 +295,19 @@ a:hover { color: var(--accent-deep); }
   .order-date, .order-chevron { display: none; }
   .view { padding: 28px 18px 48px; }
   .hero h1, .hero-title { font-size: clamp(30px, 9vw, 44px); }
-  /* ---- mobile navbar: deliberate 2-row layout (brand+nav, then search) ---- */
-  .topbar { flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 16px; }
-  .brand { font-size: 19px; flex: 0 1 auto; min-width: 0; }
-  .nav { gap: 12px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
-  .nav a, .nav .cart-link, .nav .ghost-btn { font-size: 13.5px; white-space: nowrap; }
-  /* search always drops to its own full-width row under the brand+nav line */
-  .search { order: 3; flex: 1 1 100%; max-width: 100%; margin-left: 0; }
+  /* ---- mobile navbar: brand+search on row 1, tabs aligned on row 2 ---- */
+  .topbar { flex-wrap: wrap; align-items: center; gap: 10px 12px; padding: 10px 16px; }
+  .brand { font-size: 19px; flex: 0 0 auto; min-width: 0; color: var(--ink); }
+  .search { order: 1; flex: 1 1 auto; max-width: none; margin-left: 12px; }
   .search input { width: 100%; }
+  .nav {
+    order: 2; flex: 1 1 100%;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; margin-left: 0;
+    border-top: 1px solid var(--line); padding-top: 9px; margin-top: 2px;
+  }
+  .nav a, .nav .cart-link, .nav .ghost-btn { font-size: 13.5px; white-space: nowrap; color: var(--ink-soft); }
+  .nav .ghost-btn { border: none !important; background: none !important; padding: 0 !important; font-weight: 500; color: var(--ink) !important; border-radius: 0 !important; }
 }
 
 @media (max-width: 560px) {
