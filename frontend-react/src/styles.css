@@ -295,20 +295,22 @@ a:hover { color: var(--accent-deep); }
   .order-date, .order-chevron { display: none; }
   .view { padding: 28px 18px 48px; }
   .hero h1, .hero-title { font-size: clamp(30px, 9vw, 44px); }
-  /* let the search drop to its own row under the brand + nav cluster */
-  .topbar { gap: 12px 14px; padding: 12px 16px; }
-  .brand { font-size: 19px; }
-  .nav { gap: 12px; }
-  .search { order: 3; flex-basis: 100%; max-width: 100%; margin-left: 0; }
+  /* ---- mobile navbar: deliberate 2-row layout (brand+nav, then search) ---- */
+  .topbar { flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 16px; }
+  .brand { font-size: 19px; flex: 0 1 auto; min-width: 0; }
+  .nav { gap: 12px; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+  .nav a, .nav .cart-link, .nav .ghost-btn { font-size: 13.5px; white-space: nowrap; }
+  /* search always drops to its own full-width row under the brand+nav line */
+  .search { order: 3; flex: 1 1 100%; max-width: 100%; margin-left: 0; }
+  .search input { width: 100%; }
 }
 
 @media (max-width: 560px) {
-  .topbar { flex-wrap: wrap; gap: 10px 12px; padding: 12px 14px; }
-  .brand { font-size: 18px; flex: 1 1 auto; }
-  .nav { gap: 10px; margin-left: auto; }
-  .nav a, .nav .cart-link { font-size: 13px; }
-  .search { order: 3; flex-basis: 100%; max-width: 100%; }
-  .search input { width: 100%; }
+  .topbar { gap: 8px 10px; padding: 9px 14px; }
+  .brand { font-size: 18px; }
+  .nav { gap: 6px 10px; }
+  .nav a, .nav .cart-link, .nav .ghost-btn { font-size: 13px; padding: 6px 0; }
+  .ghost-btn { padding: 6px 12px; }
   .footer-grid { grid-template-columns: 1fr; gap: 20px; }
   .footer-blurb { max-width: 100%; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
@@ -317,6 +319,7 @@ a:hover { color: var(--accent-deep); }
   .order-head { grid-template-columns: 1fr auto; gap: 8px 12px; }
   .order-total { grid-column: 1 / -1; }
   .hero p { font-size: 15px; }
+  .hero { margin-bottom: 6px; }
   .summary { gap: 12px; }
   .view { padding: 24px 16px 44px; }
 }
